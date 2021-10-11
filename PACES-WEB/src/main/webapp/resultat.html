@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PACES</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="./communfunction.js"></script>
+	<style>
+		body{
+			background-color:aliceblue
+		}
+	</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+					<li><a href="./dashboard.html">Espace d'étudiant</a></li>
+					<li><a href="./voeux.html" >Voeux</a></li>
+					<li class="active"><a href="./resultat.html" >Résultat</a></li>
+					<li><a href="./gestion.html" >Gestion</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	
+	<div class="container">
+		
+		<h2 id="denomination"></h2>
+		<br>
+		<h4 id="gender"> Genre: </h4>
+		<h4>Liste de voeux:</h4>
+		<h4 id="liste"></h4>
+                <h2 class="phrase">Vous êtes admis par la filière : </h2>
+                <h1 id="filiere"></h1>
+		<hr>
+                <table class="table table-bordered" id="notes">
+                    <caption class="text-center">Notes de </caption>
+                    <thead>
+                        <tr>
+                            <th>Filiere</th>
+                            <th>Note</th>
+                            <th>Classement Global</th>
+                            <th id="thSpecial">Classement dans Filière </th>
+                        </tr>
+                    </thead>
+                </table>
+	</div>
+	
+</body>
+
+<script>
+    function OnInit (){
+        
+        $.ajax({
+                url: './ActionServlet',
+                method: 'POST',
+                data: {
+                    todo: 'afficherResultat'
+                }
+            })
+            .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                console.log('Response', response); // LOG dans Console Javascript
+                if(!response.notLoggedIn) {
+                    $("#denomination").html(response.nom);
+                    var genre;
+                    if(response.genre === "H"){
+                        genre = "Homme";
+                    }
+                    if(response.genre === "F"){
+                        genre = "Femme";
+                    }
+                    $("#gender").html($("#gender").html() + genre);
+                    $("#liste").html(response.liste);
+                    
+                    if(response.admission !== ""){
+                        $("#filiere").html(response.admission);
+                    } else {
+                        $(".phrase").html("Le résultat d'admission n'est pas disponible pour l'instant.");
+                    }
+                    
+                    var text = $('#liste').html();
+                    var keyword  = $('#filiere').html();
+                    var findtext = text.split(keyword);
+                    text = findtext.join('<font style="color:red;">' + keyword + '</font>');
+                    $('#liste').html(text);
+                    
+                    var noteStr = response.notes;
+                    var obj = JSON.parse(noteStr);
+                    $("caption").append($("#denomination").html());
+                    $("#thSpecial").append($("#filiere").html());
+                    $("#notes").append("<tbody>");
+                    $.each(obj, function(i,val){ 
+                        $("#notes").append($("<tr></tr>"));
+                        $("#notes tr:last").append($("<td></td>").text(val.filiere.nomFiliere));
+                        $("#notes tr:last").append($("<td></td>").text(val.note));
+                        $("#notes tr:last").append($("<td></td>").text(val.rangGlobal));
+                        $("#notes tr:last").append($("<td></td>").text(val.rangParmiLesAdmis));
+                        if($("#notes tr:last td:last").html() === "0"){
+                            $("#notes tr:last td:last").html("/");
+                        }
+                    $("#notes").append("</tbody>");
+                    $("td,th").addClass("text-center");
+                    });
+                }
+            })
+            .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                console.log('Error', error); // LOG dans Console Javascript
+                alert("Erreur lors de l'appel AJAX");
+            })
+            .always(function() { // Fonction toujours appelée
+            });
+            
+            $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+            }); 
+    }
+
+        $(document).ready( function () {
+            OnInit();
+            
+        });
+</script>
+</html>
+

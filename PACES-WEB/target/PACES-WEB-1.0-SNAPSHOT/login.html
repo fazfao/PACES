@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Connexion au système PACES</title>
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<style>
+	body{
+		background-color:aliceblue
+	}
+	.col-center-block {
+		position: absolute;
+		top: 45%;
+		-webkit-transform: translateY(-45%);
+		-moz-transform:  translateY(-45%);
+		-ms-transform:  translateY(-45%);
+		-o-transform:  translateY(-45%);
+		transform:  translateY(-45%);
+	}
+</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+		</div>
+	</nav>
+	<div class="col-lg-4 col-lg-offset-4  col-sm-6 col-sm-offset-3 col-xs-8 col-xs-offset-2 container col-center-block">
+		<h1 class="text-center">Système PACES</h1>
+		<br/>
+		<form class="form-horizontal" role="form">
+			<div class="form-group">
+				<label for="ID" class="col-lg-3 control-label">Identifiant</label>
+				<div class="col-lg-8">
+					<input type="text" class="form-control" id="identifiant">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="MDP" class="col-lg-3 control-label">Mot de passe</label>
+				<div class="col-lg-8">
+					<input type="password" class="form-control" id="motdepasse">
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-lg-offset-2 col-lg-8" style="text-align:center">
+					<a>Mot de passe oublié?</a>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-1 col-sm-10 col-lg-offset-0 col-lg-12">
+					<button type="button" class="btn btn-default btn-primary col-xs-12 col-lg-offset-1 col-lg-4 col-sm-5 text-center">SE CONNECTER</button>
+					<button type="reset" class="btn btn-default col-xs-12 col-lg-offset-2 col-lg-4 col-sm-offset-2 col-sm-5" >EFFACER</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+    <script>
+        function OnInit (){
+            $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'checkLogin'
+                    }
+                })
+                .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response', response); // LOG dans Console Javascript
+                    if(!response.notLoggedIn) {
+                        if(response.userType==='etudiant')
+                        {
+                            console.log("redirecting..");
+                            alert("LOGGED IN: REDIRECTING TO DASH");
+                            window.location.href = "./dashboard.html";
+                        }
+                        if(response.userType==='admin'){
+                            console.log("redirecting..");
+                            alert("LOGGED IN: REDIRECTING TO DASH");
+                            window.location.href = "./admin.html";
+                        }
+
+                    }
+                    })
+                .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error', error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always(function() { // Fonction toujours appelée
+                });
+        }
+        
+        $(document).ready( function () {
+            OnInit();
+            $("button[type='button']").on( 'click', function () { // Fonction appelée lors du clic sur le bouton
+
+                console.log("clic sur le bouton de connexion"); // LOG dans Console Javascript
+                $('#notification').html("Connexion..."); // Message pour le paragraphe de notification
+
+                // Récupération de la valeur des champs du formulaire
+                var champLogin = $('#identifiant').val();
+                var champPassword = $('#motdepasse').val();
+                // Appel AJAX
+                $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'connecter',
+                        login: champLogin,
+                        password: champPassword
+                    },
+                    dataType: 'json'
+                })
+                .done( function (response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response',response); // LOG dans Console Javascript
+                    if (response.connexion) {
+                        if(response.user === "etudiant") {
+                            window.location.href = "./dashboard.html";
+                           //  user = response.client;
+                        }
+                        else if(response.user === "admin") {
+                            // user = response.employe;
+                             window.location.href = "./admin.html";
+                        }
+                        //$('#notification').html("Connexion OK");  // Message pour le paragraphe de notification
+                        // TODO: afficher les informations du client dans la notification
+                        // Exemple: Connexion de Ada Lovelace (ID 1)
+                       //  $('#notification').html("Connexion de " + user.prenom + " " + user.nom + " (ID " + user.id + ")");  // Message pour le paragraphe de notification
+                    }
+                    else {
+                        alert("Erreur de connexion : Mauvais identifiant/mot de passe"); // Message pour le paragraphe de notification
+                    }
+                })
+                .fail( function (error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error',error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always( function () { // Fonction toujours appelée
+
+                });
+            });
+        });
+    </script>
+</html>

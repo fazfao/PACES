@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Remplissez votre liste de voeux</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="./communfunction.js"></script>
+<style>
+	body{
+		background-color:aliceblue
+	}
+	.col-center-block {
+		position: absolute;
+		top: 50%;
+		-webkit-transform: translateY(-50%);
+		-moz-transform:  translateY(-50%);
+		-ms-transform:  translateY(-50%);
+		-o-transform:  translateY(-50%);
+		transform:  translateY(-50%);
+	}
+</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+					<li><a href="./dashboard.html">Espace d'étudiant</a></li>
+					<li class="active"><a href="" >Voeux</a></li>
+					<li><a href="./resultat.html" >Résultat</a></li>
+					<li><a href="./gestion.html" >Gestion</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	
+	
+		<div class="container av-ddl">
+			<div id="filiereDisponible" class="col-xs-6 col-sm-offset-1 col-sm-4 col-lg-offset-1 col-lg-4 btn-group-vertical">
+				<h4 class="text-center">Filières disponibles</h4>
+				<br/>
+				
+			</div>
+			<div id="filiereChoisie" class="col-xs-6 col-sm-offset-2 col-sm-4 col-lg-offset-2 col-lg-4 btn-group-vertical ">
+				<h4 class="text-center">Filières choisies</h4>
+				<br/>
+			</div>
+		</div>
+		<br/>
+		<div class="container av-ddl">
+			<button id="btnSubmit" type="button" class="btn btn-default btn-success col-xs-4 col-sm-offset-1 col-sm-2 col-lg-offset-1 col-lg-2">CONFIRMER</button>
+			<button id="btnClear" type="button" class="btn btn-default btn-danger col-xs-4 col-sm-offset-2 col-sm-2 col-lg-offset-2 col-lg-2" >EFFACER</button>
+			<button id="btnBack" type="button" class="btn btn-default btn-primary col-xs-4 col-sm-offset-2 col-sm-2 col-lg-offset-2 col-lg-2" >RETOUR</button>
+		</div>
+		<div class="container ap-ddl">
+			<h3 class="text-center" style="display:none"> Vous ne pourrez plus changer vos voeux car la date limite est passée.</h3>
+		</div>
+</body>
+
+<script>
+	$(document).ready(function(){
+                OnInit();
+                
+                 $("#btnSubmit").click(function(){
+                    if(finished()){
+                        $.ajax({
+                            url: './ActionServlet',
+                            method: 'POST',
+                            data: {
+                                todo: 'changerVoeux',
+                                liste: parseToString()
+                            }
+                        })
+                        .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                            console.log('Response', response); // LOG dans Console Javascript
+                            if(response.result){
+                                alert("Votre liste de voeux a été modifiée avec succès.");
+                            } else {
+                                alert("Modification échouée. Vous ne pouvez changer votre liste de voeux qu'avant l'affectation.");
+                            }
+                        })
+                        .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                            console.log('Error', error); // LOG dans Console Javascript
+                            alert("Erreur lors de l'appel AJAX");
+                        })
+                        .always(function() { // Fonction toujours appelée
+                            location.reload();
+                        });
+                    } else {
+                        alert("La liste n'est pas encore remplie.")
+                    }
+                });
+                
+                $("#btnClear").click(function effacer(){
+                    var content = "";
+                    content = $("#filiereChoisie").html();
+                    $("button").remove("#filiereChoisie .btn");
+                    $("#filiereDisponible").append(content);
+                    $("h4").remove("#filiereDisponible h4:last");
+                    $("br").remove("#filiereDisponible br:last");
+                });
+
+                $("#btnBack").click(function (){
+                    window.location.href='./dashboard.html';
+                });
+	});
+        
+        function move(element){
+                var nomDeFiliere = element.innerHTML;
+                if(element.parentNode.attributes.getNamedItem("id").textContent==="filiereDisponible"){
+                    $("#filiereChoisie").append('<button type="button" class="btn btn-default" onclick="move(this);">'+nomDeFiliere+'</button>');
+                }
+                if(element.parentNode.attributes.getNamedItem("id").textContent==="filiereChoisie"){
+                    $("#filiereDisponible").append('<button type="button" class="btn btn-default" onclick="move(this);">'+nomDeFiliere+'</button>');
+                }
+                element.remove();
+        }
+        
+	function parseToString(){
+		var liste = "";
+		$("#filiereChoisie button").each(function(){
+                    liste += $(this).html()+",";
+		});
+		liste = liste.substr(0, liste.length - 1);
+		return liste;
+	}
+	
+	
+	function finished(){
+		if($("#filiereDisponible button").length===0){
+			return true;
+		} else {
+			return false;
+		}
+	}
+        
+        function OnInit (){
+            $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'checkLogin'
+                    }
+                })
+                .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response', response); // LOG dans Console Javascript
+                    if(response.notLoggedIn) {
+                        console.log("redirecting..");
+                        alert("NOT LOGGED IN: REDIRECTING TO LOGIN PAGE");
+                        window.location.href = "./login.html";
+                    }
+                    })
+                .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error', error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always(function() { // Fonction toujours appelée
+                });
+
+            $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'afficherProfil'
+                    }
+                })
+                .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response', response); // LOG dans Console Javascript
+                    if(!response.notLoggedIn) {
+                        var liste = response.liste;
+                        var listeApresSplit = liste.split(",");
+                        for (var i=0;i<listeApresSplit.length;i++){
+                            $("#filiereDisponible").append($('<button type="button" class="btn btn-default" onclick="move(this);"></button>').text(listeApresSplit[i]));
+                        }
+                    }
+                })
+                .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error', error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always(function() { // Fonction toujours appelée
+                });
+                
+            $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+            }); 
+        }
+</script>
+
+</html>

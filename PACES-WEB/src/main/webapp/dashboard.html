@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PACES</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="communfunction.js"></script>
+	<style>
+		body{
+                    background-color:aliceblue
+		}
+                ol{
+                    border:1px;
+                    width:10px;
+                    margin:0px auto;
+                    padding: 0;
+                }
+	</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+					<li class="active"><a href="">Espace d'étudiant</a></li>
+					<li><a href="./voeux.html" >Voeux</a></li>
+					<li><a href="./resultat.html" >Résultat</a></li>
+					<li><a href="./gestion.html" >Gestion</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	
+	<div class="container">
+	    <div class="row text-center">
+		<h2 id="denomination"></h2>
+		<br>
+		<h4 id="gender"> Genre: </h4>
+                <h4 id="mail"> Adresse E-mail: </h4>
+		<h4 id="birthday"> Date de naissance: </h4>
+	    </div>
+            <hr/>
+            <div class="row text-center">
+                <h4>Liste de voeux:</h4>
+		<ol id="liste"></ol>
+            </div>
+	</div>
+	
+</body>
+
+<script>
+    function OnInit (){
+        
+        $.ajax({
+                url: './ActionServlet',
+                method: 'POST',
+                data: {
+                    todo: 'afficherProfil'
+                }
+            })
+            .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                console.log('Response', response); // LOG dans Console Javascript
+                if(!response.notLoggedIn) {
+                    $("#denomination").html(response.nom);
+                    var genre;
+                    if(response.genre === "H"){
+                        genre = "Homme";
+                    }
+                    if(response.genre === "F"){
+                        genre = "Femme";
+                    }
+                    $("#gender").html($("#gender").html() + genre);
+                    $("#birthday").html($("#birthday").html() + response.dateNaissance);
+                    $("#liste").children().empty();
+                    $("#mail").html($("#mail").html() + response.mail);
+                    
+                    
+                    var liste = response.liste;
+                    var listeApresSplit = liste.split(",");
+                    for (var i=0;i<listeApresSplit.length;i++){
+                        $("#liste").append($('<li class="inliste"></li>').text(listeApresSplit[i]));
+                    }
+                } else {
+                    console.log("redirecting..");
+                    alert("NOT LOGGED IN: REDIRECTING TO LOGIN PAGE");
+                    window.location.href = "./login.html";
+                }
+            })
+            .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                console.log('Error', error); // LOG dans Console Javascript
+                alert("Erreur lors de l'appel AJAX");
+            })
+            .always(function() { // Fonction toujours appelée
+            });
+    }
+
+        $(document).ready( function () {
+            OnInit();
+            
+            $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+            }); 
+        });
+</script>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gestion de compte</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="./communfunction.js"></script>
+<style>
+	body{
+		background-color:aliceblue
+	}
+	.center-vertical{
+		position: relative;
+		top: 50%;
+		transform: translateY(20%);
+	}
+</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+					<li><a href="./dashboard.html">Espace d'étudiant</a></li>
+					<li><a href="./voeux.html" >Voeux</a></li>
+					<li><a href="./resultat.html" >Résultat</a></li>
+					<li class="active"><a href="" >Gestion</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container-fluid">
+		<div class="row col-md-2">
+			<ul class="nav nav-pills nav-stacked">
+				  <li class="active"><a href="">Changement de Mot de Passe</a></li>
+				  <li><a href="./gestion-mail.html">Changement d'Email</a></li>
+				  <li><a href="#">Changement de Portrait</a></li>
+			</ul>
+		</div>
+		<div class="row col-md-10">
+			<div class="container">
+				<form class="form-horizontal col-md-10 center-vertical" role="form">
+					<div class="form-group">
+						<div class="col-md-offset-3 col-lg-offset-3 col-md-6">
+							<input type="password" class="form-control" id="ancient" placeholder="Mot de passe actuel">
+						</div>
+					</div>
+					<div class="form-group">
+						
+						<div class="col-md-offset-3 col-lg-offset-3 col-md-6">
+							<input type="password" class="form-control" id="nouveau" placeholder="Nouveau mot de passe">
+						</div>
+					</div>
+					<div class="form-group">
+						
+						<div class="col-md-offset-3 col-lg-offset-3 col-md-6">
+							<input type="password" class="form-control" id="confirmation" placeholder="Confirmation">
+						</div>
+					</div>
+					<br/>
+					<div class="form-group my-4">
+						<div class="col-sm-offset-1 col-md-offset-1 col-sm-10 col-lg-offset-0 col-lg-12">
+							<button type="button" class="btn btn-default btn-primary col-xs-12  col-md-offset-3 col-md-2 col-lg-offset-2 col-lg-3 col-sm-5 text-center">VALIDER</button>
+							<button type="reset" class="btn btn-default btn-danger col-xs-12 col-lg-offset-2 col-md-offset-2 col-md-2 col-lg-3 col-sm-offset-2 col-sm-5" >EFFACER</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script>
+        function OnInit (){
+            
+            $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'checkLogin'
+                    }
+                })
+                .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response', response); // LOG dans Console Javascript
+                    if(response.notLoggedIn) {
+                        console.log("redirecting..");
+                        alert("NOT LOGGED IN: REDIRECTING TO LOGIN PAGE");
+                        window.location.href = "./login.html";
+                    }
+                    })
+                .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error', error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always(function() { // Fonction toujours appelée
+                });
+            $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+            }); 
+        }
+        
+        $(document).ready( function () {
+            OnInit();
+            $("button[type='button']").on( 'click', function () { // Fonction appelée lors du clic sur le bouton
+
+                console.log("clic sur le bouton de connexion"); // LOG dans Console Javascript
+                $('#notification').html("Connexion..."); // Message pour le paragraphe de notification
+
+                // Récupération de la valeur des champs du formulaire
+                var old = $('#ancient').val();
+                var neu = $('#nouveau').val();
+                var conf = $('#confirmation').val();
+                
+                if(conf === neu && neu !== null){
+                    // Appel AJAX
+                    $.ajax({
+                        url: './ActionServlet',
+                        method: 'POST',
+                        data: {
+                            todo: 'changerMdp',
+                            oldPassword: old,
+                            newPassword: neu
+                        },
+                        dataType: 'json'
+                    })
+                    .done( function (response) { // Fonction appelée en cas d'appel AJAX réussi
+                                                        console.log("testtest"); // LOG dans Console Javascript
+                        console.log('Response',response); // LOG dans Console Javascript
+                        if (response.result) {
+                            alert("Votre mot de passe a été modifié avec succès.");
+                            //$('#notification').html("Connexion OK");  // Message pour le paragraphe de notification
+                            // TODO: afficher les informations du client dans la notification
+                            // Exemple: Connexion de Ada Lovelace (ID 1)
+                           //  $('#notification').html("Connexion de " + user.prenom + " " + user.nom + " (ID " + user.id + ")");  // Message pour le paragraphe de notification
+                        }
+                        else {
+                            alert("Changement échoué avec mauvais mot de passe. Error : " + response.errorCode);
+                        }
+                    })
+                    .fail( function (error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                        console.log('Error',error); // LOG dans Console Javascript
+                        alert("Erreur lors de l'appel AJAX");
+                    })
+                    .always( function () { // Fonction toujours appelée
+                        $("button[type=reset]").trigger("click");
+                    });
+                } else {
+                    alert("le nouveau mot de passe et la confirmation ne sont pas identiques.");
+                }
+            });
+        });
+    </script>
+</html>

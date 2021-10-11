@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PACES(admin)</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="./communfunction.js"></script>
+	<style>
+		body{
+			background-color:aliceblue
+		}
+	</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+                                        <li class="active"><a href="" >Admin</a></li>
+					<li><a href="./stats.html" >Statistiques</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	
+	<div class="container text-center">
+            <h1>↓↓↓Appuyer ce bouton pour commencer l'affectation↓↓↓</h1>
+            <img src='https://pic.pngsucai.com/00/00/00/6c48b7cfb526f045.jpg' alt='' />
+	</div>
+	
+</body>
+
+<script>
+    function OnInit (){
+        
+        $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'checkLogin'
+                    }
+                })
+                .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response', response); // LOG dans Console Javascript
+                    if(response.notLoggedIn) {
+                        console.log("redirecting..");
+                        alert("NOT LOGGED IN: REDIRECTING TO LOGIN PAGE");
+                        window.location.href = "./login.html";
+                    }
+                    })
+                .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error', error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always(function() { // Fonction toujours appelée
+                });
+                
+        $("img").on( 'click', function () { // Fonction appelée lors du clic sur le bouton
+
+                console.log("clic sur image"); // LOG dans Console Javascript
+                
+                // Appel AJAX
+                $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'mainProg'
+                    },
+                    dataType: 'json'
+                })
+                .done( function (response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response',response); // LOG dans Console Javascript
+                    if (response.result) {
+                        alert("Programme se termine avec succès! WUHOOOOOO~~~")
+                    }
+                    else {
+                        alert("Erreur détectée : Allez consulter le log du serveur:P"); // Message pour le paragraphe de notification
+                    }
+                })
+                .fail( function (error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error',error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always( function () { // Fonction toujours appelée
+
+                });
+            });
+            
+        $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+        }); 
+    }
+
+        $(document).ready( function () {
+            OnInit();
+            
+        });
+</script>
+</html>
+

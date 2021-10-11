@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gestion de compte</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="./communfunction.js"></script>
+<style>
+	body{
+		background-color:aliceblue
+	}
+	.center-vertical{
+		position: relative;
+		top: 50%;
+		transform: translateY(20%);
+	}
+	.mailbloc{
+		padding-left: 0rem !important
+	}
+</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+					<li><a href="./dashboard.html">Espace d'étudiant</a></li>
+					<li><a href="./voeux.html" >Voeux</a></li>
+					<li><a href="./resultat.html" >Résultat</a></li>
+					<li class="active"><a href="" >Gestion</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container-fluid">
+		<div class="row col-md-2">
+			<ul class="nav nav-pills nav-stacked">
+				  <li><a href="./gestion.html">Changement de Mot de Passe</a></li>
+				  <li class="active"><a href="">Changement d'Email</a></li>
+				  <li><a href="">Changement de Portrait</a></li>
+			</ul>
+		</div>
+		<div class="row col-md-10">
+			<div class="container">
+                                <br/>
+				<form class="form-horizontal col-md-10 center-vertical" role="form">
+					<div class="form-group">
+						<div class="col-md-offset-3 col-lg-offset-3 col-md-6">
+							<div class="col-md-8 col-xs-7 mailbloc">
+								<input type="text" class="col-lg-8  pl-0 form-control" id="mail" placeholder="E-mail à mettre à jour">
+							</div>
+							<button type="button" id="envoyer" class="btn btn-default btn-primary col-md-4 col-xs-offset-1 col-md-offset-0 col-xs-4 text-center">ENVOYER</button>
+						</div>
+					</div>
+                                        <br/>
+					<div class="form-group">
+						<div class="col-md-offset-3 col-lg-offset-3 col-md-6">
+							<input type="text" class="form-control" id="code" placeholder="Code de vérification">
+						</div>
+					</div>
+                                        <br/>
+                                        <div class="form-group">
+                                            <div class="col-md-offset-3 col-lg-offset-3 col-md-6">
+						<button type="button" id="submit" class="btn btn-default btn-primary col-xs-12  col-md-offset-3 col-md-6 col-sm-offset-3 col-sm-6 text-center">VALIDER</button>
+                                            </div>
+                                        </div>    
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script>
+        function OnInit (){
+            
+            $.ajax({
+                    url: './ActionServlet',
+                    method: 'POST',
+                    data: {
+                        todo: 'checkLogin'
+                    }
+                })
+                .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                    console.log('Response', response); // LOG dans Console Javascript
+                    if(response.notLoggedIn) {
+                        console.log("redirecting..");
+                        alert("NOT LOGGED IN: REDIRECTING TO LOGIN PAGE");
+                        window.location.href = "./login.html";
+                    }
+                    })
+                .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                    console.log('Error', error); // LOG dans Console Javascript
+                    alert("Erreur lors de l'appel AJAX");
+                })
+                .always(function() { // Fonction toujours appelée
+                });
+            $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+            }); 
+        }
+        
+        function isEmail(mail){
+            var reg =/^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.\-]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/; //正则表达式
+            if(mail === ""){ 
+                $(".mailbloc").removeClass("has-error");
+                $(".mailbloc").removeClass("has-success");
+                $(".mailbloc").addClass("has-warning");
+                return false;
+            }else if(!reg.test(mail)){ //正则验证不通过，格式不对
+                $(".mailbloc").removeClass("has-warning");
+                $(".mailbloc").removeClass("has-success");
+                $(".mailbloc").addClass("has-error");
+                return false;
+            }else{
+                $(".mailbloc").removeClass("has-warning");
+                $(".mailbloc").removeClass("has-error");
+                $(".mailbloc").addClass("has-success");
+                return true;
+            }
+        }
+        
+        $(document).ready( function () {
+            OnInit();
+            $("#mail").blur(function(){
+                var email = $("input[id='mail']").val();
+                isEmail(email);
+            });
+            
+            $("#envoyer").on( 'click', function () { // Fonction appelée lors du clic sur le bouton
+
+                // Récupération de la valeur des champs du formulaire
+                var mail = $('#mail').val();
+                
+                if($(".mailbloc").hasClass('has-success')){
+                    // Appel AJAX
+                    $.ajax({
+                        url: './ActionServlet',
+                        method: 'POST',
+                        data: {
+                            todo: 'envoyerMail',
+                            mail: mail
+                        },
+                        dataType: 'json'
+                    })
+                    .done( function (response) { // Fonction appelée en cas d'appel AJAX réussi
+                        console.log('Response',response); // LOG dans Console Javascript
+                        if (response.result) {
+                            alert("Un mail de vérification a été envoyé à votre adresse. Le code de vérification sera expiré dans 10 minutes.");
+                            //$('#notification').html("Connexion OK");  // Message pour le paragraphe de notification
+                            // TODO: afficher les informations du client dans la notification
+                            // Exemple: Connexion de Ada Lovelace (ID 1)
+                           //  $('#notification').html("Connexion de " + user.prenom + " " + user.nom + " (ID " + user.id + ")");  // Message pour le paragraphe de notification
+                        }
+                        else {
+                            alert("Envoi échoué.");
+                        }
+                    })
+                    .fail( function (error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                        console.log('Error',error); // LOG dans Console Javascript
+                        alert("Erreur lors de l'appel AJAX");
+                    })
+                    .always( function () { // Fonction toujours appelée
+                    });
+                } else {
+                    alert("Format incorrect/ E-mail null");
+                }
+            });
+            
+            $("#submit").on( 'click', function () { // Fonction appelée lors du clic sur le bouton
+
+                // Récupération de la valeur des champs du formulaire
+                var vcode = $('#code').val();
+                var mail = $('#mail').val();
+                if(vcode !== null){
+                    // Appel AJAX
+                    $.ajax({
+                        url: './ActionServlet',
+                        method: 'POST',
+                        data: {
+                            todo: 'changerMail',
+                            vcode: vcode
+                        },
+                        dataType: 'json'
+                    })
+                    .done( function (response) { // Fonction appelée en cas d'appel AJAX réussi
+                        console.log('Response',response); // LOG dans Console Javascript
+                        if (response.result) {
+                            alert("Modification se termine avec succès.");
+                            //$('#notification').html("Connexion OK");  // Message pour le paragraphe de notification
+                            // TODO: afficher les informations du client dans la notification
+                            // Exemple: Connexion de Ada Lovelace (ID 1)
+                           //  $('#notification').html("Connexion de " + user.prenom + " " + user.nom + " (ID " + user.id + ")");  // Message pour le paragraphe de notification
+                        }
+                        else {
+                            alert("Modification échouée.");
+                        }
+                    })
+                    .fail( function (error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                        console.log('Error',error); // LOG dans Console Javascript
+                        alert("Erreur lors de l'appel AJAX");
+                    })
+                    .always( function () { // Fonction toujours appelée
+                    });
+                } else {
+                    alert("code null");
+                }
+            });
+        });
+    </script>
+</html>

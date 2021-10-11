@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Statistiques</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="./communfunction.js"></script>
+	<style>
+		body{
+			background-color:aliceblue
+		}
+	</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="https://lyon-sud.univ-lyon1.fr/formation/paces-1ere-annee-/paces-premiere-annee-commune-des-etudes-de-sante-lyon-sud-658969.kjsp">PACES</a>
+			</div>
+			<div>
+				<ul class="nav navbar-nav " style="font-weight:bold">
+                                        <li><a href="./admin.html" >Admin</a></li>
+					<li class="active"><a href="" >Statistiques</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="" id="logout">Déconnexion</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	
+	<div class="container">
+                <table id="filieres" class='table'>
+                    <thead>
+                        <tr>
+                            <th>Filière</th>
+                            <th>Note Moyenne</th>
+                            <th>Objectif</th>
+                            <th>Situation Réelle</th>
+                            <th>Qualité</th>
+                        </tr>
+                    </thead>
+                </table>
+	</div>
+	
+</body>
+
+<script>
+    function OnInit (){
+        
+        $.ajax({
+                url: './ActionServlet',
+                method: 'POST',
+                data: {
+                    todo: 'afficherStats'
+                }
+            })
+            .done(function(response) { // Fonction appelée en cas d'appel AJAX réussi
+                console.log('Response', response); // LOG dans Console Javascript
+                if(!response.notLoggedIn) {
+                    var stats1 = response.info1;
+                    var stats2 = response.info2;
+                    var obj1 = JSON.parse(stats1);
+                    var obj2 = JSON.parse(stats2);
+                    $("#filieres").append("<tbody>");
+                    $.each(obj1, function(i,val){ 
+                        $("#filieres").append($("<tr></tr>"));
+                        $("#filieres tr:last").append($("<td></td>").text(val.nomFiliere));
+                        $.each(obj2, function(j,val2){ 
+                            if(val2.filiere === val.nomFiliere){
+                                $("#filieres tr:last").append($("<td></td>").text(val2.noteMoyenne));
+                            }
+                        });
+                        $("#filieres tr:last").append($("<td></td>").text(val.nbMax));
+                        $("#filieres tr:last").append($("<td></td>").text(val.nbCurrent));
+                        $("#filieres tr:last").append($("<td></td>").text(val.quality));
+                        $("#filieres").append("</tbody>");
+                        $("td,th").addClass("text-center");
+                    });
+                }
+            })
+            .fail(function(error) { // Fonction appelée en cas d'erreur lors de l'appel AJAX
+                console.log('Error', error); // LOG dans Console Javascript
+                alert("Erreur lors de l'appel AJAX");
+            })
+            .always(function() { // Fonction toujours appelée
+            });
+            
+            $('#logout').on('click', function(){
+                var dec = deconnexion;
+                dec();
+            }); 
+    }
+
+        $(document).ready( function () {
+            OnInit();
+            
+        });
+</script>
+</html>
+
